@@ -1,0 +1,107 @@
+<mujoco model="scene">
+    <include file="../reachy_mini.xml" />
+    <compiler meshdir="../assets" texturedir="../assets" />
+    <option>
+        <flag multiccd="enable"/>   <!-- multi-contact CCD for convex/mesh pairs -->
+    </option>
+    <visual>
+        <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0" />
+        <rgba haze="0.15 0.25 0.35 1" />
+        <global azimuth="160" elevation="-20" offwidth="1280" offheight="720"/>
+    </visual>
+    <asset>
+        <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512"
+            height="3072" />
+        <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4"
+            rgb2="0.1 0.2 0.3"
+            markrgb="0.8 0.8 0.8" width="300" height="300" />
+        <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5"
+            reflectance="0.2" />
+
+        <!-- CROISSANT -->
+        <texture type="2d" name="croissant_diff"
+            file="croissant_1k.blend/textures/croissant_diff_1k.png" />
+        <material name="croissant_material"
+            texture="croissant_diff"
+            rgba="1 1 1 1"
+            shininess="0.2"
+            specular="0.1"
+            reflectance="0.05" />
+        <mesh name="croissant_mesh" file="croissant_1k.blend/croissant_1k.obj" scale="1 1 1" />
+
+
+        <!-- APPLE -->
+        <texture type="2d" name="food_apple_01_diff"
+            file="food_apple_01_1k.blend/textures/food_apple_01_diff_1k.png" />
+        <material name="food_apple_01_material"
+            texture="food_apple_01_diff"
+            rgba="1 1 1 1"
+            shininess="0.2"
+            specular="0.1"
+            reflectance="0.05" />
+
+        <mesh name="food_apple_01_mesh" file="food_apple_01_1k.blend/food_apple_01_1k.obj"
+            scale="1 1 1" />
+
+        <!-- TABLE -->
+        <!-- wooden_table_02_1k.blend -->
+        <texture type="2d" name="wooden_table_02_diff"
+            file="wooden_table_02_1k.blend/textures/wooden_table_02_diff_1k.png" />
+        <material name="wooden_table_02_material"
+            texture="wooden_table_02_diff"
+            rgba="1 1 1 1"
+            shininess="0.2"
+            specular="0.1"
+            reflectance="0.05" />
+        <mesh name="wooden_table_02_mesh" file="wooden_table_02_1k.blend/wooden_table_02_1k.obj"
+            scale="1 1 1" />
+
+
+        <!-- DUCK -->
+        <!-- rubber_duck_toy_1k.blend
+          -->
+        <texture type="2d" name="rubber_duck_toy_diff"
+            file="rubber_duck_toy_1k.blend/textures/rubber_duck_toy_diff_1k.png" />
+        <material name="rubber_duck_toy_material"
+            texture="rubber_duck_toy_diff"
+            rgba="1 1 1 1"
+            shininess="0.2"
+            specular="0.1"
+            reflectance="0.05" />
+        <mesh name="rubber_duck_toy_mesh" file="rubber_duck_toy_1k.blend/rubber_duck_toy_1k.obj"
+            scale="0.4 0.4 0.4" />
+
+        <!-- CUSTOM FLOOR TEXTURE -->
+        <texture type="2d" name="floor_texture" file="floor_texture.png" />
+        <material name="custom_floor_material"
+            texture="floor_texture"
+            texrepeat="5 5"
+            rgba="1 1 1 1" />
+
+        <!-- RED CURTAIN BACKDROP -->
+        <texture type="2d" name="red_curtain" file="red_curtain.png" />
+        <material name="curtain_material"
+            texture="red_curtain"
+            texuniform="false"
+            texrepeat="0.5 0.5"
+            rgba="1 1 1 1"
+            shininess="0.1"
+            specular="0.05"
+            reflectance="0.1" />
+
+    </asset>
+
+    <worldbody>
+        <light pos="-0.5 0 3.5" dir="0 0 -1" directional="true" />
+        <geom name="floor" size="0 0 0.05" pos="0 0 -0.005" type="plane" material="custom_floor_material" />
+
+        <!-- CURTAIN WALLS (2 sides using boxes) -->
+        <!-- Back wall: width=8m (size 4), thickness=0.1m (size 0.05), height=5m (size 2.5) -->
+        <!-- Center at z=2.5 so bottom edge is at floor (z=0) -->
+        <geom name="back_wall" type="box" size="3 0.05 2.5" pos="0 3.05 2.5" material="curtain_material" />
+
+        <!-- Left wall: same dimensions, rotated 90° to face right -->
+        <geom name="left_wall" type="box" size="3 0.05 2.5" pos="-3.05 0 2.5" quat="0.707 0 0 0.707" material="curtain_material" />
+
+    </worldbody>
+</mujoco>
