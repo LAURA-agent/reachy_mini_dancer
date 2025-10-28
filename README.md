@@ -121,6 +121,139 @@ python react_choreographer.py --audio path/to/song.mp3 --output generated_choreo
 - Adjust move metadata in `choreography/move_metadata.json`
 - Customize prompt templates in `choreography/react_agent.py`
 
+#### How the ReAct Agent Works
+
+The reactive choreographer uses a **ReAct (Reasoning + Acting) pattern** with LLM-driven move selection:
+
+**1. Audio Analysis Phase**
+```
+Audio File → Essentia Analysis → Musical Features
+                                  ├── Tempo (BPM)
+                                  ├── Energy levels
+                                  ├── Spectral features
+                                  └── Mood indicators
+```
+
+**2. Segmentation Phase**
+```
+Musical Features → Segment Analyzer → Timestamped Segments
+                                      ├── Intro (0-8s, low energy)
+                                      ├── Verse (8-24s, building)
+                                      ├── Chorus (24-40s, high energy)
+                                      └── etc.
+```
+
+**3. ReAct Loop (per segment)**
+```
+For each musical segment:
+  ├── Context Builder: Assembles segment info + move metadata
+  ├── LLM Reasoning: "This is a high-energy chorus, I should use..."
+  ├── Tool Selection: Query move database by energy/emotion tags
+  ├── Move Selection: LLM chooses from filtered candidates
+  ├── Parameter Setting: Amplitude & cycles based on segment length
+  └── Add to routine
+```
+
+**4. Output**
+```
+Choreography JSON → {bpm, routine: [{move, amplitude, cycles}, ...]}
+```
+
+**Key Components:**
+
+- **`react_agent.py`**: Core ReAct loop with prompt templates and LLM calls
+- **`audio_analyzer.py`**: Essentia-based music feature extraction
+- **`segment_analyzer.py`**: Divides audio into meaningful sections
+- **`move_metadata.py`**: Tags moves by energy, valence, emotion, motion type
+- **`context_builder.py`**: Assembles rich context for LLM reasoning
+
+#### Adapting to Other Inference Providers
+
+**The system currently uses Anthropic's Claude**, but you can adapt it for other providers:
+
+**For OpenAI GPT-4:**
+```python
+# In choreography/react_agent.py, replace:
+from anthropic import Anthropic
+client = Anthropic(api_key=ANTHROPIC_API_KEY)
+
+# With:
+from openai import OpenAI
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+# Change message format from:
+response = client.messages.create(
+    model="claude-3-5-sonnet-20241022",
+    messages=[{"role": "user", "content": prompt}]
+)
+
+# To:
+response = client.chat.completions.create(
+    model="gpt-4-turbo",
+    messages=[{"role": "user", "content": prompt}]
+)
+```
+
+**For Local LLMs (Ollama, LM Studio):**
+```python
+import requests
+
+def call_local_llm(prompt, model="llama3.1"):
+    response = requests.post(
+        "http://localhost:11434/api/generate",  # Ollama default
+        json={
+            "model": model,
+            "prompt": prompt,
+            "stream": False
+        }
+    )
+    return response.json()["response"]
+```
+
+**For Hugging Face Inference:**
+```python
+from transformers import pipeline
+
+generator = pipeline("text-generation", model="meta-llama/Llama-3.1-8B-Instruct")
+
+def call_hf_model(prompt):
+    return generator(prompt, max_new_tokens=500)[0]["generated_text"]
+```
+
+**Recommended Adaptations:**
+
+1. **Keep the ReAct structure** - It works well for choreography reasoning
+2. **Adjust prompt templates** - Different models need different prompt styles
+3. **Test move selection quality** - Smaller models may need simpler metadata
+4. **Consider caching** - Store generated choreographies to reduce API costs
+5. **Add fallback logic** - If LLM fails, use rule-based move selection
+
+**Performance Notes:**
+- Claude Sonnet: Excellent reasoning, understands music context well
+- GPT-4: Similar quality, slightly different move preferences
+- Local LLMs (7B-13B): Usable but may need more explicit prompts
+- Smaller models (<7B): Consider simplifying to rule-based with LLM assist
+
+#### Desktop Viewer Audio Integration
+
+The **desktop viewer** (`desktop_viewer.py`) includes an **"Add Audio"** button in the choreography window:
+
+**Features:**
+- **Recent Downloads**: Automatically scans `~/Downloads` for recent audio files
+- **File Browser**: Click "Add Audio" to select any audio file (MP3, WAV, M4A)
+- **Direct Generation**: Generates choreography from selected audio using ReAct agent
+- **Instant Playback**: Loads generated routine and plays synchronized with music
+
+**Usage:**
+1. Launch viewer: `python desktop_viewer.py`
+2. Navigate to "Choreography" tab
+3. Click "Add Audio" button
+4. Select audio file or pick from recent downloads
+5. Wait for ReAct agent to generate choreography (~10-30 seconds)
+6. Choreography auto-loads and plays with music
+
+**Note:** Requires Anthropic API key configured in `choreography/config.py`
+
 ---
 
 ## File Structure
